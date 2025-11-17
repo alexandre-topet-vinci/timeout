@@ -7,3 +7,6 @@ numpy>=1.24.0
 matplotlib>=3.7.0
 flask>=3.0.0
 flask-cors>=4.0.0
+protobuf>=3.20.0
+sentencepiece>=0.1.99
+requests>=2.31.0

@@ -19,8 +19,12 @@ COPY train_model.py .
 COPY api_server.py .
 
 # Générer le dataset puis entraîner le modèle lors du build
-RUN python generer_dataset_avance.py && \
-    python train_model.py || echo "Entraînement terminé"
+RUN echo "📝 Génération du dataset..." && \
+    python generer_dataset_avance.py && \
+    echo "🏋️ Entraînement du modèle..." && \
+    python train_model.py && \
+    echo "✅ Modèle entraîné avec succès" && \
+    ls -la modele_final/ || (echo "❌ Erreur lors de l'entraînement" && exit 1)
 
 # Exposer le port
 EXPOSE 8000

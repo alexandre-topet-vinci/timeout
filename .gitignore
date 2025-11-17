@@ -3,6 +3,9 @@ modele_final/
 modele_entrainee/
 temp_training/
 
+# Ollama models (téléchargés lors du déploiement)
+ollama_data/
+
 # Dataset d'entraînement (généré par generer_dataset_avance.py)
 training_data.json
 

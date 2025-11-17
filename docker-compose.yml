@@ -1,6 +1,27 @@
 version: '3.8'
 
 services:
+  # Ollama - LLM local pour génération de texte
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ia-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    environment:
+      - OLLAMA_HOST=0.0.0.0:11434
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    networks:
+      - ia-network
+    command: serve
+
   # API Python avec le modèle IA
   python-api:
     build:
@@ -13,6 +34,10 @@ services:
       - ./modele_final:/app/modele_final:ro
     environment:
       - PORT=8000
+      - OLLAMA_URL=http://ollama:11434
+    depends_on:
+      ollama:
+        condition: service_healthy
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/health')"]
@@ -50,11 +75,12 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:3002
     container_name: ia-frontend
     ports:
       - "1418:3000"
     environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:3002
       - NODE_ENV=production
     depends_on:
       - backend
@@ -67,4 +93,5 @@ networks:
     driver: bridge
 
 volumes:
+  ollama_data:
   modele_data:

@@ -110,6 +110,11 @@ if lsof -Pi :1418 -sTCP:LISTEN -t >/dev/null 2>&1; then
     PORTS_IN_USE=true
 fi
 
+if lsof -Pi :11434 -sTCP:LISTEN -t >/dev/null 2>&1; then
+    echo "⚠️  Port 11434 (Ollama) déjà utilisé"
+    PORTS_IN_USE=true
+fi
+
 if [ "$PORTS_IN_USE" = true ]; then
     echo ""
     echo "❌ Certains ports sont déjà utilisés par d'autres processus"
@@ -121,6 +126,7 @@ if [ "$PORTS_IN_USE" = true ]; then
     echo "   lsof -i :8001"
     echo "   lsof -i :3002"
     echo "   lsof -i :1418"
+    echo "   lsof -i :11434"
     echo ""
     read -p "Voulez-vous continuer quand même ? (o/N) " -n 1 -r
     echo ""
@@ -159,20 +165,39 @@ fi
 
 if [ $? -eq 0 ]; then
     echo ""
-    echo "✅ Déploiement terminé !"
+    echo "✅ Containers démarrés !"
     echo ""
-    echo "📍 Services disponibles :"
-    echo "   - Frontend:    http://localhost:1418"
-    echo "   - Backend:     http://localhost:3002"
-    echo "   - Python API:  http://localhost:8001"
+    echo "🤖 Initialisation d'Ollama et téléchargement du modèle..."
+    echo "   (Première fois : téléchargement de llama3.2 ~2GB, peut prendre 5-10 min)"
     echo ""
-    echo "📊 Vérifier les logs : docker-compose logs -f"
-    echo "🛑 Arrêter :           docker-compose down"
-    echo ""
+    
+    # Exécuter le script d'initialisation d'Ollama
+    ./init_ollama.sh
+    
+    if [ $? -eq 0 ]; then
+        echo ""
+        echo "✅ Déploiement terminé !"
+        echo ""
+        echo "📍 Services disponibles :"
+        echo "   - Frontend:    http://localhost:1418"
+        echo "   - Backend:     http://localhost:3002"
+        echo "   - Python API:  http://localhost:8001"
+        echo "   - Ollama:      http://localhost:11434"
+        echo ""
+        echo "📊 Vérifier les logs : docker-compose logs -f"
+        echo "🛑 Arrêter :           docker-compose down"
+        echo ""
+    else
+        echo ""
+        echo "❌ Erreur lors de l'initialisation d'Ollama"
+        echo "💡 Vous pouvez réessayer avec : ./init_ollama.sh"
+        echo "📊 Voir les logs : docker logs ia-ollama"
+    fi
 else
     echo ""
     echo "❌ Erreur lors du démarrage des containers"
     echo "📊 Voir les logs : docker-compose logs"
     exit 1
 fi
+
 
