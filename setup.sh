@@ -95,13 +95,13 @@ fi
 echo "🔍 Vérification des ports..."
 PORTS_IN_USE=false
 
-if lsof -Pi :8000 -sTCP:LISTEN -t >/dev/null 2>&1; then
-    echo "⚠️  Port 8000 déjà utilisé"
+if lsof -Pi :8001 -sTCP:LISTEN -t >/dev/null 2>&1; then
+    echo "⚠️  Port 8001 déjà utilisé"
     PORTS_IN_USE=true
 fi
 
-if lsof -Pi :3001 -sTCP:LISTEN -t >/dev/null 2>&1; then
-    echo "⚠️  Port 3001 déjà utilisé"
+if lsof -Pi :3002 -sTCP:LISTEN -t >/dev/null 2>&1; then
+    echo "⚠️  Port 3002 déjà utilisé"
     PORTS_IN_USE=true
 fi
 
@@ -118,8 +118,8 @@ if [ "$PORTS_IN_USE" = true ]; then
     echo "   2. Modifier les ports dans docker-compose.yml"
     echo ""
     echo "🔍 Pour voir qui utilise les ports :"
-    echo "   lsof -i :8000"
-    echo "   lsof -i :3001"
+    echo "   lsof -i :8001"
+    echo "   lsof -i :3002"
     echo "   lsof -i :1418"
     echo ""
     read -p "Voulez-vous continuer quand même ? (o/N) " -n 1 -r
@@ -163,8 +163,8 @@ if [ $? -eq 0 ]; then
     echo ""
     echo "📍 Services disponibles :"
     echo "   - Frontend:    http://localhost:1418"
-    echo "   - Backend:     http://localhost:3001"
-    echo "   - Python API:  http://localhost:8000"
+    echo "   - Backend:     http://localhost:3002"
+    echo "   - Python API:  http://localhost:8001"
     echo ""
     echo "📊 Vérifier les logs : docker-compose logs -f"
     echo "🛑 Arrêter :           docker-compose down"
