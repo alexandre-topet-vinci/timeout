@@ -4,6 +4,16 @@ echo "🚀 Setup IA Sarcastique pour déploiement"
 echo "========================================"
 echo ""
 
+# Créer le fichier .env depuis .env.example
+if [ ! -f ".env" ]; then
+    echo "📝 Création du fichier .env..."
+    cp .env.example .env
+    echo "✅ Fichier .env créé"
+else
+    echo "✅ Fichier .env existe déjà"
+fi
+echo ""
+
 # Vérifier si le modèle existe localement
 if [ -d "./modele_final" ]; then
     echo "✅ Modèle trouvé localement dans ./modele_final/"
@@ -62,7 +72,7 @@ echo ""
 echo "✅ Déploiement terminé !"
 echo ""
 echo "📍 Services disponibles :"
-echo "   - Frontend:    http://localhost:3000"
+echo "   - Frontend:    http://localhost:1418"
 echo "   - Backend:     http://localhost:3001"
 echo "   - Python API:  http://localhost:8000"
 echo ""
