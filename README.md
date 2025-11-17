@@ -37,3 +37,4 @@ python generate_responses.py
 
 Modifiez `training_data.json` pour ajouter vos propres exemples !
 # timeout
+# timeout
