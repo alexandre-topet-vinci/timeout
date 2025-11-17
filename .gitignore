@@ -1,5 +1,5 @@
-# Modèles entraînés (décommente pour ne PAS versionner le modèle)
-# modele_final/
+# Modèles entraînés (trop gros pour GitHub - 516 MB)
+modele_final/
 modele_entrainee/
 temp_training/
 
