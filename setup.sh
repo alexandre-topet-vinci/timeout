@@ -78,31 +78,61 @@ fi
 
 echo ""
 
-# Déterminer si un build est nécessaire
-NEED_BUILD=false
+# Vérifier et arrêter les anciens containers
+if docker ps -a | grep -E "ia-python-api|ia-backend|ia-frontend" > /dev/null; then
+    echo "🛑 Anciens containers détectés, nettoyage..."
+    docker-compose down 2>/dev/null
+    
+    # Forcer l'arrêt si nécessaire
+    docker stop ia-python-api ia-backend ia-frontend 2>/dev/null
+    docker rm ia-python-api ia-backend ia-frontend 2>/dev/null
+    
+    echo "✅ Containers nettoyés"
+    echo ""
+fi
 
-# Vérifier si des containers sont déjà en cours d'exécution
-if docker-compose ps | grep -q "Up"; then
-    echo "⚠️  Des containers sont déjà en cours d'exécution"
+# Vérifier si les ports sont déjà utilisés
+echo "🔍 Vérification des ports..."
+PORTS_IN_USE=false
+
+if lsof -Pi :8000 -sTCP:LISTEN -t >/dev/null 2>&1; then
+    echo "⚠️  Port 8000 déjà utilisé"
+    PORTS_IN_USE=true
+fi
+
+if lsof -Pi :3001 -sTCP:LISTEN -t >/dev/null 2>&1; then
+    echo "⚠️  Port 3001 déjà utilisé"
+    PORTS_IN_USE=true
+fi
+
+if lsof -Pi :1418 -sTCP:LISTEN -t >/dev/null 2>&1; then
+    echo "⚠️  Port 1418 déjà utilisé"
+    PORTS_IN_USE=true
+fi
+
+if [ "$PORTS_IN_USE" = true ]; then
     echo ""
-    read -p "Voulez-vous les redémarrer ? (O/n) " -n 1 -r
+    echo "❌ Certains ports sont déjà utilisés par d'autres processus"
+    echo "💡 Solutions :"
+    echo "   1. Arrêter les processus utilisant ces ports"
+    echo "   2. Modifier les ports dans docker-compose.yml"
     echo ""
-    if [[ ! $REPLY =~ ^[Nn]$ ]]; then
-        echo "🛑 Arrêt des anciens containers..."
-        docker-compose down
-        echo "✅ Containers arrêtés"
-        echo ""
-    else
-        echo "✅ Les containers restent actifs"
-        echo ""
-        echo "📍 Services disponibles :"
-        echo "   - Frontend:    http://localhost:1418"
-        echo "   - Backend:     http://localhost:3001"
-        echo "   - Python API:  http://localhost:8000"
-        echo ""
-        exit 0
+    echo "🔍 Pour voir qui utilise les ports :"
+    echo "   lsof -i :8000"
+    echo "   lsof -i :3001"
+    echo "   lsof -i :1418"
+    echo ""
+    read -p "Voulez-vous continuer quand même ? (o/N) " -n 1 -r
+    echo ""
+    if [[ ! $REPLY =~ ^[Oo]$ ]]; then
+        exit 1
     fi
 fi
+
+echo ""
+
+# Déterminer si un build est nécessaire
+NEED_BUILD=false
 
 # Vérifier si les images Docker existent
 if ! docker images | grep -q "ia-python-api"; then
