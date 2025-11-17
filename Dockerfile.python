@@ -1,0 +1,28 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Installer les dépendances système
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copier les fichiers de requirements
+COPY requirements.txt .
+
+# Installer les dépendances Python
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copier les scripts et données d'entraînement
+COPY training_data.json .
+COPY train_model.py .
+COPY api_server.py .
+
+# Entraîner le modèle lors du build (si pas déjà présent)
+RUN python train_model.py || echo "Entraînement terminé"
+
+# Exposer le port
+EXPOSE 8000
+
+# Lancer le serveur API
+CMD ["python", "api_server.py"]

@@ -1,0 +1,71 @@
+version: '3.8'
+
+services:
+  # API Python avec le modèle IA
+  python-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.python
+    container_name: ia-python-api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./modele_final:/app/modele_final:ro
+      - ./training_data.json:/app/training_data.json:ro
+    environment:
+      - PORT=8000
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - ia-network
+
+  # Backend NestJS
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: ia-backend
+    ports:
+      - "3001:3001"
+    environment:
+      - PORT=3001
+      - PYTHON_API_URL=http://python-api:8000
+      - FRONTEND_URL=http://frontend:3000
+    depends_on:
+      - python-api
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - ia-network
+
+  # Frontend Next.js
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: ia-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://backend:3001
+      - NODE_ENV=production
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - ia-network
+
+networks:
+  ia-network:
+    driver: bridge
+
+volumes:
+  modele_data:
