@@ -14,68 +14,61 @@ else
 fi
 echo ""
 
-# Vérifier si le modèle existe localement
-if [ -d "./modele_final" ]; then
-    echo "✅ Modèle trouvé localement dans ./modele_final/"
-    echo "📦 Le modèle sera monté via volume Docker"
-    echo ""
-    echo "Utilisation du docker-compose.yml (avec volumes)"
-    COMPOSE_FILE="docker-compose.yml"
-else
-    echo "⚠️  Modèle non trouvé dans ./modele_final/"
-    echo "🏗️  Le modèle sera entraîné lors du build Docker"
-    echo ""
-    echo "Option 1 : Entraîner le modèle maintenant (recommandé)"
-    echo "Option 2 : Laisser Docker l'entraîner (plus long au build)"
-    echo ""
-    read -p "Voulez-vous entraîner le modèle maintenant ? (o/N) " -n 1 -r
-    echo ""
-    
-    if [[ $REPLY =~ ^[Oo]$ ]]; then
-        echo "🎓 Entraînement du modèle..."
-        
-        # Vérifier si l'environnement virtuel existe
-        if [ ! -d ".venv" ]; then
-            echo "📦 Création de l'environnement virtuel..."
-            python3 -m venv .venv
-        fi
-        
-        echo "📥 Installation des dépendances..."
-        source .venv/bin/activate
-        pip install -q -r requirements.txt
-        
-        echo "📝 Génération du dataset..."
-        python generer_dataset_avance.py
-        
-        echo "🏋️  Entraînement en cours..."
-        python train_model.py
-        
-        if [ $? -eq 0 ]; then
-            echo "✅ Modèle entraîné avec succès !"
-            COMPOSE_FILE="docker-compose.yml"
-        else
-            echo "❌ Erreur lors de l'entraînement"
-            exit 1
-        fi
-    else
-        echo "⏩ Le modèle sera entraîné dans Docker"
-        COMPOSE_FILE="docker-compose.yml"
-    fi
+# Vérifier que Docker est installé
+if ! command -v docker &> /dev/null; then
+    echo "❌ Docker n'est pas installé !"
+    echo "� Veuillez exécuter d'abord : ./install_dependencies.sh"
+    exit 1
+fi
+
+# Vérifier que Docker Compose est installé
+if ! command -v docker-compose &> /dev/null; then
+    echo "❌ Docker Compose n'est pas installé !"
+    echo "📥 Veuillez exécuter d'abord : ./install_dependencies.sh"
+    exit 1
+fi
+
+echo "✅ Docker et Docker Compose sont installés"
+echo ""
+
+# Information sur le processus
+echo "📦 Le modèle sera automatiquement :"
+echo "   1. Dataset généré dans le container"
+echo "   2. Modèle entraîné dans le container"
+echo "   3. Services démarrés"
+echo ""
+echo "⏱️  Premier build : ~5-10 minutes"
+echo "⏱️  Builds suivants : ~2 minutes (cache Docker)"
+echo ""
+
+read -p "Voulez-vous continuer ? (O/n) " -n 1 -r
+echo ""
+if [[ $REPLY =~ ^[Nn]$ ]]; then
+    echo "❌ Installation annulée"
+    exit 0
 fi
 
 echo ""
-echo "🐳 Démarrage des containers Docker..."
+echo "🐳 Construction et démarrage des containers Docker..."
 echo "========================================"
-docker-compose -f $COMPOSE_FILE up --build -d
+docker-compose up --build -d
 
-echo ""
-echo "✅ Déploiement terminé !"
-echo ""
-echo "📍 Services disponibles :"
-echo "   - Frontend:    http://localhost:1418"
-echo "   - Backend:     http://localhost:3001"
-echo "   - Python API:  http://localhost:8000"
-echo ""
-echo "📊 Vérifier les logs : docker-compose logs -f"
-echo "🛑 Arrêter :           docker-compose down"
-echo ""
+if [ $? -eq 0 ]; then
+    echo ""
+    echo "✅ Déploiement terminé !"
+    echo ""
+    echo "📍 Services disponibles :"
+    echo "   - Frontend:    http://localhost:1418"
+    echo "   - Backend:     http://localhost:3001"
+    echo "   - Python API:  http://localhost:8000"
+    echo ""
+    echo "📊 Vérifier les logs : docker-compose logs -f"
+    echo "🛑 Arrêter :           docker-compose down"
+    echo ""
+else
+    echo ""
+    echo "❌ Erreur lors du démarrage des containers"
+    echo "📊 Voir les logs : docker-compose logs"
+    exit 1
+fi
+
