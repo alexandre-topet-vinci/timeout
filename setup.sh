@@ -77,9 +77,32 @@ if [[ $REPLY =~ ^[Nn]$ ]]; then
 fi
 
 echo ""
-echo "🐳 Construction et démarrage des containers Docker..."
-echo "========================================"
-docker-compose up --build -d
+
+# Déterminer si un build est nécessaire
+NEED_BUILD=false
+
+# Vérifier si les images Docker existent
+if ! docker images | grep -q "ia-python-api"; then
+    echo "🔨 Images Docker non trouvées, build nécessaire"
+    NEED_BUILD=true
+elif [ ! -d "./modele_final" ]; then
+    echo "🔨 Modèle non trouvé, rebuild nécessaire pour entraîner"
+    NEED_BUILD=true
+else
+    echo "✅ Images Docker et modèle existants"
+fi
+
+echo ""
+
+if [ "$NEED_BUILD" = true ]; then
+    echo "🐳 Construction et démarrage des containers Docker..."
+    echo "========================================"
+    docker-compose up --build -d
+else
+    echo "🐳 Démarrage des containers Docker (sans rebuild)..."
+    echo "========================================"
+    docker-compose up -d
+fi
 
 if [ $? -eq 0 ]; then
     echo ""
