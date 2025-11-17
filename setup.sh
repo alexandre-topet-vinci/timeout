@@ -81,6 +81,29 @@ echo ""
 # Déterminer si un build est nécessaire
 NEED_BUILD=false
 
+# Vérifier si des containers sont déjà en cours d'exécution
+if docker-compose ps | grep -q "Up"; then
+    echo "⚠️  Des containers sont déjà en cours d'exécution"
+    echo ""
+    read -p "Voulez-vous les redémarrer ? (O/n) " -n 1 -r
+    echo ""
+    if [[ ! $REPLY =~ ^[Nn]$ ]]; then
+        echo "🛑 Arrêt des anciens containers..."
+        docker-compose down
+        echo "✅ Containers arrêtés"
+        echo ""
+    else
+        echo "✅ Les containers restent actifs"
+        echo ""
+        echo "📍 Services disponibles :"
+        echo "   - Frontend:    http://localhost:1418"
+        echo "   - Backend:     http://localhost:3001"
+        echo "   - Python API:  http://localhost:8000"
+        echo ""
+        exit 0
+    fi
+fi
+
 # Vérifier si les images Docker existent
 if ! docker images | grep -q "ia-python-api"; then
     echo "🔨 Images Docker non trouvées, build nécessaire"
