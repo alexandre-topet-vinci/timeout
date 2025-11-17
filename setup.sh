@@ -34,6 +34,9 @@ else
         source .venv/bin/activate
         pip install -q -r requirements.txt
         
+        echo "📝 Génération du dataset..."
+        python generer_dataset_avance.py
+        
         echo "🏋️  Entraînement en cours..."
         python train_model.py
         

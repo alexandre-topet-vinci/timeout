@@ -14,12 +14,13 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copier les scripts et données d'entraînement
-COPY training_data.json .
+COPY generer_dataset_avance.py .
 COPY train_model.py .
 COPY api_server.py .
 
-# Entraîner le modèle lors du build (si pas déjà présent)
-RUN python train_model.py || echo "Entraînement terminé"
+# Générer le dataset puis entraîner le modèle lors du build
+RUN python generer_dataset_avance.py && \
+    python train_model.py || echo "Entraînement terminé"
 
 # Exposer le port
 EXPOSE 8000

@@ -11,7 +11,6 @@ services:
       - "8000:8000"
     volumes:
       - ./modele_final:/app/modele_final:ro
-      - ./training_data.json:/app/training_data.json:ro
     environment:
       - PORT=8000
     restart: unless-stopped
